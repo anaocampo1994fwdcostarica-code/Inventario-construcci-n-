@@ -1,0 +1,265 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum RolUsuario {
+  ADMINISTRADOR
+  ENCARGADO_BODEGA
+  SUPERVISOR_OBRA
+  CONSULTA
+}
+
+enum TipoUbicacion {
+  BODEGA
+  OBRA
+}
+
+enum EstadoOrdenCompra {
+  BORRADOR
+  SOLICITADA
+  APROBADA
+  PARCIALMENTE_RECIBIDA
+  RECIBIDA
+  CANCELADA
+}
+
+enum TipoMovimiento {
+  ENTRADA
+  SALIDA
+  TRASLADO
+  AJUSTE
+}
+
+enum SentidoAjuste {
+  INCREMENTO
+  DECREMENTO
+}
+
+enum TipoAlerta {
+  PUNTO_REORDEN
+  STOCK_MAXIMO
+  STOCK_NEGATIVO
+  COMPRA_DUPLICADA
+}
+
+enum EstadoAlerta {
+  ACTIVA
+  ATENDIDA
+  DESCARTADA
+}
+
+model Usuario {
+  id               String                 @id @default(cuid())
+  identificacion   String                 @unique
+  nombre           String
+  correo           String                 @unique
+  rol              RolUsuario
+  activo           Boolean                @default(true)
+  passwordHash     String?
+  ultimoLoginAt    DateTime?
+  intentosFallidos Int                    @default(0)
+  bloqueadoHasta   DateTime?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  ordenesCompra    OrdenCompra[]
+  movimientos      MovimientoInventario[]
+  alertasAtendidas AlertaInventario[]     @relation("AlertaAtendidaPor")
+  auditorias       Auditoria[]
+  recepciones      RecepcionCompra[]
+  sesiones         Sesion[]
+}
+
+model Sesion {
+  id         String    @id @default(cuid())
+  usuarioId  String
+  tokenHash  String    @unique @db.Char(64)
+  expiraAt   DateTime
+  revocadaAt DateTime?
+  createdAt  DateTime  @default(now())
+  usuario    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId, expiraAt])
+}
+
+model Material {
+  id                    String                 @id @default(cuid())
+  codigo                String                 @unique
+  nombre                String
+  descripcion           String?
+  unidadMedida          String
+  stockMinimo           Decimal                @db.Decimal(14, 3)
+  stockMaximo           Decimal                @db.Decimal(14, 3)
+  demandaDiariaPromedio Decimal                @db.Decimal(14, 3)
+  demandaDiariaMaxima   Decimal                @db.Decimal(14, 3)
+  tiempoEntregaDias     Int
+  activo                Boolean                @default(true)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  detallesOrden         DetalleOrdenCompra[]
+  movimientos           MovimientoInventario[]
+  alertas               AlertaInventario[]
+}
+
+model Ubicacion {
+  id                 String                 @id @default(cuid())
+  codigo             String                 @unique
+  nombre             String
+  tipo               TipoUbicacion
+  direccion          String?
+  activa             Boolean                @default(true)
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  movimientosOrigen  MovimientoInventario[] @relation("MovimientoOrigen")
+  movimientosDestino MovimientoInventario[] @relation("MovimientoDestino")
+  alertas            AlertaInventario[]
+  recepciones        RecepcionCompra[]
+}
+
+model Proveedor {
+  id             String        @id @default(cuid())
+  identificacion String        @unique
+  nombre         String
+  correo         String?
+  telefono       String?
+  direccion      String?
+  activo         Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  ordenesCompra  OrdenCompra[]
+}
+
+model OrdenCompra {
+  id            String                 @id @default(cuid())
+  numero        String                 @unique
+  proveedorId   String
+  fecha         DateTime               @default(now())
+  estado        EstadoOrdenCompra      @default(BORRADOR)
+  responsableId String
+  total         Decimal                @db.Decimal(14, 2)
+  observaciones String?
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  proveedor     Proveedor              @relation(fields: [proveedorId], references: [id], onDelete: Restrict)
+  responsable   Usuario                @relation(fields: [responsableId], references: [id], onDelete: Restrict)
+  detalles      DetalleOrdenCompra[]
+  movimientos   MovimientoInventario[]
+  recepciones   RecepcionCompra[]
+}
+
+model DetalleOrdenCompra {
+  id               String                 @id @default(cuid())
+  ordenCompraId    String
+  materialId       String
+  cantidad         Decimal                @db.Decimal(14, 3)
+  precioUnitario   Decimal                @db.Decimal(14, 2)
+  subtotal         Decimal                @db.Decimal(14, 2)
+  cantidadRecibida Decimal                @default(0) @db.Decimal(14, 3)
+  ordenCompra      OrdenCompra            @relation(fields: [ordenCompraId], references: [id], onDelete: Restrict)
+  material         Material               @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  movimientos      MovimientoInventario[]
+  recepciones      DetalleRecepcion[]
+
+  @@unique([ordenCompraId, materialId])
+  @@index([materialId])
+}
+
+model MovimientoInventario {
+  id                   String              @id @default(cuid())
+  materialId           String
+  tipo                 TipoMovimiento
+  sentidoAjuste        SentidoAjuste?
+  cantidad             Decimal             @db.Decimal(14, 3)
+  fecha                DateTime            @default(now())
+  usuarioId            String
+  ubicacionOrigenId    String?
+  ubicacionDestinoId   String?
+  documentoOrigen      String?
+  ordenCompraId        String?
+  detalleOrdenCompraId String?
+  observaciones        String?
+  material             Material            @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  usuario              Usuario             @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+  ubicacionOrigen      Ubicacion?          @relation("MovimientoOrigen", fields: [ubicacionOrigenId], references: [id], onDelete: Restrict)
+  ubicacionDestino     Ubicacion?          @relation("MovimientoDestino", fields: [ubicacionDestinoId], references: [id], onDelete: Restrict)
+  ordenCompra          OrdenCompra?        @relation(fields: [ordenCompraId], references: [id], onDelete: Restrict)
+  detalleOrdenCompra   DetalleOrdenCompra? @relation(fields: [detalleOrdenCompraId], references: [id], onDelete: Restrict)
+  detalleRecepcionId   String?             @unique
+  detalleRecepcion     DetalleRecepcion?   @relation(fields: [detalleRecepcionId], references: [id], onDelete: Restrict)
+  recepcionCompra      RecepcionCompra?    @relation(fields: [recepcionCompraId], references: [id])
+  recepcionCompraId    String?
+
+  @@index([materialId, fecha])
+  @@index([ubicacionOrigenId, fecha])
+  @@index([ubicacionDestinoId, fecha])
+  @@index([ordenCompraId])
+}
+
+model RecepcionCompra {
+  id                String   @id @default(cuid())
+  ordenCompraId     String
+  claveIdempotencia String   @unique @db.VarChar(191)
+  solicitudHash     String   @db.Char(64)
+  usuarioId         String
+  ubicacionId       String
+  referencia        String?
+  observaciones     String?
+  fecha             DateTime @default(now())
+
+  ordenCompra OrdenCompra            @relation(fields: [ordenCompraId], references: [id], onDelete: Restrict)
+  usuario     Usuario                @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+  ubicacion   Ubicacion              @relation(fields: [ubicacionId], references: [id], onDelete: Restrict)
+  detalles    DetalleRecepcion[]
+  movimientos MovimientoInventario[]
+
+  @@index([ordenCompraId, fecha])
+  @@index([usuarioId, fecha])
+}
+
+model DetalleRecepcion {
+  id                   String  @id @default(cuid())
+  recepcionId          String
+  detalleOrdenCompraId String
+  cantidad             Decimal @db.Decimal(14, 3)
+
+  recepcion          RecepcionCompra       @relation(fields: [recepcionId], references: [id], onDelete: Restrict)
+  detalleOrdenCompra DetalleOrdenCompra    @relation(fields: [detalleOrdenCompraId], references: [id], onDelete: Restrict)
+  movimiento         MovimientoInventario?
+
+  @@unique([recepcionId, detalleOrdenCompraId])
+  @@index([detalleOrdenCompraId])
+}
+
+model AlertaInventario {
+  id            String       @id @default(cuid())
+  materialId    String
+  ubicacionId   String
+  tipo          TipoAlerta
+  fecha         DateTime     @default(now())
+  estado        EstadoAlerta @default(ACTIVA)
+  descripcion   String
+  atendidaPorId String?
+  atendidaAt    DateTime?
+  material      Material     @relation(fields: [materialId], references: [id], onDelete: Restrict)
+  ubicacion     Ubicacion    @relation(fields: [ubicacionId], references: [id], onDelete: Restrict)
+  atendidaPor   Usuario?     @relation("AlertaAtendidaPor", fields: [atendidaPorId], references: [id], onDelete: SetNull)
+
+  @@index([materialId, ubicacionId, estado])
+}
+
+model Auditoria {
+  id        String   @id @default(cuid())
+  usuarioId String
+  accion    String
+  entidad   String
+  entidadId String?
+  fecha     DateTime @default(now())
+  detalles  Json?
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
+
+  @@index([entidad, entidadId])
+  @@index([usuarioId, fecha])
+}
