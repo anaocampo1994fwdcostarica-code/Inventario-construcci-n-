@@ -1,0 +1,37 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "test": "vitest run",
+    "test:integration": "node scripts/integration-test.js",
+    "test:integration:receipts": "node scripts/receipt-integration-test.js",
+    "test:integration:auth": "node scripts/auth-integration-test.js",
+    "test:integration:auth:init": "node scripts/auth-initializer-integration-test.js",
+    "auth:init-admin": "node scripts/init-admin.js",
+    "prisma:validate": "prisma validate",
+    "prisma:format": "prisma format"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@prisma/adapter-mariadb": "^7.10.1",
+    "@prisma/client": "^7.10.1",
+    "argon2": "^0.45.2",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.10",
+    "express": "^5.3.0",
+    "mariadb": "^3.5.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14",
+    "prisma": "^7.10.1",
+    "supertest": "^7.3.2",
+    "vitest": "^5.1.0"
+  }
+}
