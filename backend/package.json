@@ -12,6 +12,7 @@
     "test:integration:auth": "node scripts/auth-integration-test.js",
     "test:integration:auth:init": "node scripts/auth-initializer-integration-test.js",
     "auth:init-admin": "node scripts/init-admin.js",
+    "seed": "node scripts/seed.js",
     "prisma:validate": "prisma validate",
     "prisma:format": "prisma format"
   },
