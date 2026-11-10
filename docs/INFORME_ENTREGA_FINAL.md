@@ -2,27 +2,35 @@
 
 ## Resumen
 
-ObraStock implementa inventario para una empresa constructora con React, Express, Prisma y MySQL.
+ObraStock implementa inventario para una empresa constructora con React,
+Express, Prisma y MySQL.
 
 ## Implementación
 
-Incluye catálogos, stock calculado por movimientos, órdenes, recepciones idempotentes, alertas, reportes, autenticación Argon2id, sesiones HttpOnly y autorización por roles.
+Incluye catálogos, stock calculado por movimientos, órdenes, recepciones
+idempotentes, alertas, reportes, autenticación Argon2id, sesiones HttpOnly y
+autorización por roles.
+
+## Datos reproducibles
+
+`backend/scripts/seed.js` crea datos ficticios de demostración en una base
+aislada. Usa IDs deterministas, una transacción y una contraseña introducida
+localmente mediante `SEED_ADMIN_PASSWORD`; no contiene credenciales ni datos
+reales.
 
 ## Validaciones
 
 - Backend: 49 pruebas aprobadas y 1 omitida.
-- Integraciones de inventario, recepciones, autenticación e inicializador: aprobadas.
+- Integraciones de inventario, recepciones, autenticación e inicializador: aprobadas en sus etapas correspondientes.
 - Prisma Validate: aprobado.
 - Frontend lint y build: aprobados.
 
-## Seguridad y estado de datos
+## Evidencias y pendientes
 
-Las escrituras de pruebas usan `gestion_inventario_construccion_test`. Desarrollo conserva un administrador real y no fue modificado durante esta preparación. No se incluyen credenciales, `.env` ni respaldos SQL.
+No existe suite E2E de navegador ni capturas automatizadas. Deben tomarse
+manualmente en `docs/evidencias/entrega_final/`, sin exponer secretos, y
+completar el checklist visual. El enunciado o rúbrica oficial del Quiz #2 no se
+encuentra en el repositorio, por lo que la Parte A requiere validación contra el
+documento oficial del curso.
 
-No se encontró en el repositorio el enunciado o rúbrica oficial del Quiz #2; la validación académica definitiva contra ese documento queda pendiente.
-
-## Evidencias y clasificación
-
-No existe suite E2E de navegador ni capturas automatizadas. Deben tomarse manualmente en `docs/evidencias/entrega_final/`, sin exponer secretos, y completar el checklist visual.
-
-**Estado: Listo con pendientes menores.** La aplicación y las pruebas automatizadas están operativas; falta evidencia manual y limpieza del índice Git antes de publicar.
+**Estado:** aplicación técnica operativa, con evidencias académicas pendientes.

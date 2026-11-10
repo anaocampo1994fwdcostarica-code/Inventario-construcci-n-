@@ -1,30 +1,42 @@
 # Autenticación y autorización
 
-## Alcance
+La autenticación usa Argon2id y sesiones opacas almacenadas como hashes SHA-256
+en `Sesion`. El token se entrega mediante cookie `HttpOnly`; las mutaciones
+requieren también el token CSRF correspondiente.
 
-La autenticación usa contraseñas Argon2id y sesiones opacas almacenadas como hashes SHA-256 en la tabla `Sesion`. El token se entrega únicamente mediante cookie `HttpOnly`; las mutaciones requieren además el token CSRF de la cookie no `HttpOnly` en `X-CSRF-Token`.
+La migración `20261109210000_autenticacion_sesiones` está versionada en el
+repositorio. Su aplicación debe comprobarse por base con:
 
-La migración `20261109210000_autenticacion_sesiones` se aplicó solamente a `gestion_inventario_construccion_test`. La base de desarrollo no fue migrada.
+```powershell
+npx prisma migrate status
+```
 
 ## Roles
 
-- `ADMINISTRADOR`: administración completa, incluidos usuarios y cambios de estado sensibles.
-- `ENCARGADO_BODEGA`: operaciones de inventario, recepciones y órdenes; sin administración de usuarios.
-- `SUPERVISOR_OBRA`: operaciones de inventario, recepciones y órdenes; sin administración de usuarios.
-- `CONSULTA`: consultas de lectura; no puede registrar movimientos, compras ni recepciones.
+- `ADMINISTRADOR`: administración completa.
+- `ENCARGADO_BODEGA`: inventario, recepciones y órdenes, sin administrar usuarios.
+- `SUPERVISOR_OBRA`: operaciones autorizadas de inventario y compras.
+- `CONSULTA`: consultas de lectura; no registra movimientos, compras ni recepciones.
 
-Aunque los tres últimos roles pertenecen visualmente al perfil `EMPLEADO`, la autorización se evalúa por el rol real.
+## Endpoints
 
-## Endpoints públicos y protegidos
+- Públicos: `GET /api/health` y `POST /api/auth/login`.
+- Sesión: `GET /api/auth/me` y `POST /api/auth/logout`.
+- El resto requiere sesión válida; las mutaciones requieren CSRF.
 
-- Público: `GET /api/health`, `POST /api/auth/login`.
-- Sesión: `GET /api/auth/me`, `POST /api/auth/logout`.
-- El resto de las rutas de negocio requiere sesión válida y CSRF para mutaciones.
+## Inicialización y seed
 
-## Primer administrador
+`backend/scripts/init-admin.js` crea el primer administrador únicamente mediante
+un procedimiento local autorizado y con contraseña introducida de forma segura.
+`backend/scripts/seed.js` sirve para bases aisladas de demostración: requiere
+`SEED_ADMIN_PASSWORD`, genera el hash con Argon2id, usa IDs deterministas y no
+acepta contraseñas predeterminadas. El seed rechaza la base de desarrollo salvo
+una confirmación explícita.
 
-No se crean usuarios predeterminados. La inicialización debe ejecutarse mediante un procedimiento local autorizado, definiendo explícitamente identificación, nombre, correo y una contraseña segura de al menos 12 caracteres. Nunca se deben guardar contraseñas en el repositorio, en scripts ni en documentación. La base objetivo debe comprobarse antes de ejecutar cualquier inicialización.
+Nunca se guardan contraseñas, hashes, tokens ni URLs completas en el repositorio.
 
-## Consideraciones de producción
+## Consideraciones
 
-El límite de intentos está en memoria del proceso; para múltiples instancias debe trasladarse a un almacén compartido. En producción se requiere HTTPS, `Secure` en cookies y una política de origen frontend explícita.
+El límite de intentos de login está en memoria del proceso. Para múltiples
+instancias debe trasladarse a un almacén compartido. En producción se requiere
+HTTPS, cookies `Secure` y un origen frontend explícito.

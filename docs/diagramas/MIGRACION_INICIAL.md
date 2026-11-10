@@ -1,64 +1,38 @@
-# Migración inicial de inventario
+# Migraciones y datos iniciales
 
-## Configuración
+## Migraciones
 
-- Motor: MySQL Community Server 8.0.46.
-- Host: `localhost`.
-- Puerto: `3306`.
-- Base de datos: `gestion_inventario_construccion`.
-- ORM: Prisma 7.10.1.
-- Adaptador: `@prisma/adapter-mariadb` con el driver `mariadb`.
-- Migración: `20261109175050_init_inventario_construccion`.
+El proyecto usa MySQL 8, Prisma 7.10.1 y `@prisma/adapter-mariadb`.
+Las migraciones versionadas son:
 
-No se incluyen credenciales ni cadenas de conexión en esta documentación.
+- `20261109175050_init_inventario_construccion`
+- `20261109190000_recepciones_seguras`
+- `20261109210000_autenticacion_sesiones`
 
-## Tablas creadas
+En una base nueva se aplican con:
 
-Tablas de negocio:
-
-- `usuario`
-- `material`
-- `ubicacion`
-- `proveedor`
-- `ordencompra`
-- `detalleordencompra`
-- `movimientoinventario`
-- `alertainventario`
-- `auditoria`
-
-Tabla interna de Prisma:
-
-- `_prisma_migrations`
-
-Las nueve tablas de negocio quedaron vacías después de la migración.
-
-## Relaciones principales
-
-- Proveedores se relacionan con órdenes de compra.
-- Órdenes de compra contienen detalles de materiales.
-- Movimientos relacionan materiales, usuarios, ubicaciones y órdenes de compra.
-- Alertas relacionan materiales, ubicaciones y usuarios que las atienden.
-- Auditorías relacionan usuarios con las entidades auditadas.
-
-## Comandos utilizados
-
-```text
+```powershell
+cd backend
+npx prisma migrate deploy
 npm run prisma:validate
-npx prisma migrate dev --name init_inventario_construccion
-npx prisma generate
-npx prisma migrate status
-npm test
 ```
 
-También se verificaron la versión del motor, la existencia de las tablas y el
-conteo inicial de registros mediante consultas de solo lectura. No se usó
-`prisma db push`, no se ejecutó `prisma migrate reset` y no se insertaron datos
-semilla.
+El estado debe comprobarse por base con `npx prisma migrate status`.
 
-La inicialización del cliente se verificó con una consulta de lectura `SELECT 1`
-usando el adaptador MySQL/MariaDB requerido por Prisma 7.
+## Seed reproducible
 
-## Resultado
+La migración no inserta datos. Para una base aislada de demostración, configurar
+`SEED_DATABASE_NAME` con el nombre exacto de la base y
+`SEED_ADMIN_PASSWORD` localmente, y ejecutar:
 
-La base quedó sincronizada con el esquema Prisma. La migración está aplicada y
-Prisma reporta que el esquema se encuentra actualizado.
+```powershell
+npm run seed
+```
+
+El seed crea materiales, ubicaciones, proveedores, órdenes, recepción,
+movimientos, una alerta y una auditoría. Usa IDs deterministas, transacción,
+Argon2id para el usuario de demostración e ignora registros seed ya existentes.
+Bloquea la base de desarrollo salvo autorización explícita.
+
+No se incluyen credenciales, contraseñas, respaldos SQL ni datos reales en el
+repositorio.
