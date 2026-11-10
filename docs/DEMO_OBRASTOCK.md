@@ -3,6 +3,11 @@
 La demostración utiliza la base MySQL independiente `gestion_inventario_construccion_demo`.
 La base normal `gestion_inventario_construccion` no debe usarse para cargar datos demo.
 
+El seed prepara 12 materiales, 3 ubicaciones, 5 proveedores, 8 órdenes de compra,
+recepciones trazables, 15 movimientos o más y escenarios de existencias suficientes,
+bajas y agotadas. Los registros usan IDs deterministas y pueden crearse de forma
+idempotente sin duplicar los datos del seed.
+
 ## Preparación
 
 Desde PowerShell, en `backend`, configure las variables únicamente en la sesión local:
@@ -54,6 +59,22 @@ npm run dev
 ```
 
 El frontend debe usar `VITE_API_URL=http://localhost:3000/api`. Para volver al entorno normal, cierre las terminales y establezca nuevamente `DATABASE_URL` desde `backend/.env`; no copie la URL demo sobre ese archivo.
+
+Si el backend normal ya ocupa el puerto 3000, inicie la demo en el puerto 3101 sin detenerlo:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\backend\scripts\iniciar-backend-demo.ps1
+```
+
+En una segunda terminal, inicie Vite apuntando al backend demo:
+
+```powershell
+cd frontend
+$env:VITE_API_URL = 'http://localhost:3101/api'
+npm run dev
+```
+
+Abra la URL indicada por Vite, cierre cualquier sesión anterior e inicie sesión con una de las cuentas demo. La variable `VITE_API_URL` vive solo en esa terminal y no modifica archivos locales.
 
 ## Verificación de aislamiento
 

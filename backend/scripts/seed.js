@@ -59,6 +59,10 @@ const ids = {
   entradaArena: 'seed-movimiento-entrada-arena',
   entradaPvc: 'seed-movimiento-entrada-pvc',
   ajusteBlock: 'seed-movimiento-ajuste-block',
+  piedra: 'seed-material-piedra', pintura: 'seed-material-pintura', cable: 'seed-material-cable', tornillos: 'seed-material-tornillos', lamina: 'seed-material-lamina', adhesivo: 'seed-material-adhesivo',
+  provD: 'seed-proveedor-d', provE: 'seed-proveedor-e', orden3: 'seed-orden-003', orden4: 'seed-orden-004', orden5: 'seed-orden-005', orden6: 'seed-orden-006', orden7: 'seed-orden-007', orden8: 'seed-orden-008',
+  detallePiedra: 'seed-detalle-piedra-003', detallePvc: 'seed-detalle-pvc-004', detallePintura: 'seed-detalle-pintura-005', detalleCable: 'seed-detalle-cable-006', detalleTornillos: 'seed-detalle-tornillos-007', detalleLamina: 'seed-detalle-lamina-008',
+  movimientoPiedra: 'seed-movimiento-piedra', movimientoPvc: 'seed-movimiento-pvc-medio', movimientoPintura: 'seed-movimiento-pintura', movimientoCable: 'seed-movimiento-cable', movimientoTornillos: 'seed-movimiento-tornillos', movimientoLamina: 'seed-movimiento-lamina', movimientoAdhesivo: 'seed-movimiento-adhesivo', movimientoVarilla: 'seed-movimiento-varilla', movimientoArenaSalida: 'seed-movimiento-arena-salida',
   alertaGuantes: 'seed-alerta-guantes',
   auditoria: 'seed-auditoria-001',
 }
@@ -89,6 +93,12 @@ const run = async () => {
     })
 
     const materials = {}
+    materials.piedra = await ensure(tx, 'material', ids.piedra, { codigo: 'MAT-PIE-01', nombre: 'Piedra cuarta', descripcion: 'Agregado para concreto', unidadMedida: 'm3', stockMinimo: 10, stockMaximo: 80, demandaDiariaPromedio: 3, demandaDiariaMaxima: 6, tiempoEntregaDias: 4 })
+    materials.pintura = await ensure(tx, 'material', ids.pintura, { codigo: 'MAT-PIN-BLA', nombre: 'Pintura blanca', descripcion: 'Pintura base agua', unidadMedida: 'galon', stockMinimo: 8, stockMaximo: 40, demandaDiariaPromedio: 1, demandaDiariaMaxima: 3, tiempoEntregaDias: 5 })
+    materials.cable = await ensure(tx, 'material', ids.cable, { codigo: 'MAT-CAB-12', nombre: 'Cable electrico', descripcion: 'Cable para instalaciones residenciales', unidadMedida: 'metro', stockMinimo: 100, stockMaximo: 800, demandaDiariaPromedio: 25, demandaDiariaMaxima: 45, tiempoEntregaDias: 6 })
+    materials.tornillos = await ensure(tx, 'material', ids.tornillos, { codigo: 'MAT-TOR-001', nombre: 'Tornillos de construccion', descripcion: 'Tornillos galvanizados', unidadMedida: 'caja', stockMinimo: 10, stockMaximo: 80, demandaDiariaPromedio: 2, demandaDiariaMaxima: 4, tiempoEntregaDias: 4 })
+    materials.lamina = await ensure(tx, 'material', ids.lamina, { codigo: 'MAT-LAM-ZIN', nombre: 'Lamina de zinc', descripcion: 'Lamina para cubierta', unidadMedida: 'unidad', stockMinimo: 15, stockMaximo: 100, demandaDiariaPromedio: 3, demandaDiariaMaxima: 6, tiempoEntregaDias: 7 })
+    materials.adhesivo = await ensure(tx, 'material', ids.adhesivo, { codigo: 'MAT-ADH-CER', nombre: 'Adhesivo ceramico', descripcion: 'Adhesivo para revestimientos', unidadMedida: 'saco', stockMinimo: 10, stockMaximo: 60, demandaDiariaPromedio: 2, demandaDiariaMaxima: 4, tiempoEntregaDias: 5 })
     materials.cemento = await ensure(tx, 'material', ids.cemento, { codigo: 'MAT-CEM-50', nombre: 'Cemento gris 50 kg', descripcion: 'Cemento para concreto estructural', unidadMedida: 'saco', stockMinimo: 20, stockMaximo: 120, demandaDiariaPromedio: 10, demandaDiariaMaxima: 18, tiempoEntregaDias: 3 })
     materials.varilla = await ensure(tx, 'material', ids.varilla, { codigo: 'MAT-VAR-3', nombre: 'Varilla #3', descripcion: 'Varilla corrugada de construcción', unidadMedida: 'unidad', stockMinimo: 30, stockMaximo: 200, demandaDiariaPromedio: 8, demandaDiariaMaxima: 14, tiempoEntregaDias: 5 })
     materials.block = await ensure(tx, 'material', ids.block, { codigo: 'MAT-BLK-122040', nombre: 'Block 12 x 20 x 40', descripcion: 'Block de concreto', unidadMedida: 'unidad', stockMinimo: 50, stockMaximo: 500, demandaDiariaPromedio: 20, demandaDiariaMaxima: 35, tiempoEntregaDias: 4 })
@@ -104,11 +114,26 @@ const run = async () => {
     await ensure(tx, 'proveedor', ids.provB, { identificacion: 'SEED-PROV-B', nombre: 'Suministros Constructivos B', correo: 'ventas.b@obrastock.local', telefono: '2222-1002', direccion: 'Alajuela, Costa Rica' })
     await ensure(tx, 'proveedor', ids.provC, { identificacion: 'SEED-PROV-C', nombre: 'Ferretería Nacional C', correo: 'ventas.c@obrastock.local', telefono: '2222-1003', direccion: 'Cartago, Costa Rica' })
 
+    const proveedorD = await ensure(tx, 'proveedor', ids.provD, { identificacion: 'SEED-PROV-D', nombre: 'Proveedores Demo D', correo: 'ventas.d@obrastock.local', telefono: '2222-1004', direccion: 'Heredia, Costa Rica' })
+    const proveedorE = await ensure(tx, 'proveedor', ids.provE, { identificacion: 'SEED-PROV-E', nombre: 'Suministros Demo E', correo: 'ventas.e@obrastock.local', telefono: '2222-1005', direccion: 'Puntarenas, Costa Rica' })
+
     const order1 = await ensure(tx, 'ordenCompra', ids.orden1, { numero: 'OC-SEED-001', proveedorId: proveedorA.id, fecha: new Date('2026-01-10T08:00:00Z'), estado: 'APROBADA', responsableId: admin.id, total: '1012.50', observaciones: 'Orden demostrativa principal' })
     const detailCemento1 = await ensure(tx, 'detalleOrdenCompra', ids.detalleCemento1, { ordenCompraId: order1.id, materialId: materials.cemento.id, cantidad: 100, precioUnitario: '8.50', subtotal: '850.00', cantidadRecibida: 60 })
     await ensure(tx, 'detalleOrdenCompra', ids.detalleArena1, { ordenCompraId: order1.id, materialId: materials.arena.id, cantidad: 50, precioUnitario: '3.25', subtotal: '162.50' })
     const order2 = await ensure(tx, 'ordenCompra', ids.orden2, { numero: 'OC-SEED-002', proveedorId: proveedorA.id, fecha: new Date('2026-01-13T08:00:00Z'), estado: 'SOLICITADA', responsableId: admin.id, total: '807.50', observaciones: 'Orden cercana para demostrar posible duplicidad' })
     await ensure(tx, 'detalleOrdenCompra', ids.detalleCemento2, { ordenCompraId: order2.id, materialId: materials.cemento.id, cantidad: 95, precioUnitario: '8.50', subtotal: '807.50' })
+    const extraOrders = [
+      [ids.orden3, 'OC-SEED-003', proveedorD.id, 'APROBADA', materials.piedra.id, ids.detallePiedra, 40, '12500.00', '500000.00'],
+      [ids.orden4, 'OC-SEED-004', proveedorE.id, 'APROBADA', materials.pvc.id, ids.detallePvc, 80, '2800.00', '224000.00'],
+      [ids.orden5, 'OC-SEED-005', proveedorD.id, 'BORRADOR', materials.pintura.id, ids.detallePintura, 25, '9500.00', '237500.00'],
+      [ids.orden6, 'OC-SEED-006', proveedorE.id, 'SOLICITADA', materials.cable.id, ids.detalleCable, 500, '1100.00', '550000.00'],
+      [ids.orden7, 'OC-SEED-007', proveedorA.id, 'APROBADA', materials.tornillos.id, ids.detalleTornillos, 40, '4200.00', '168000.00'],
+      [ids.orden8, 'OC-SEED-008', proveedorD.id, 'CANCELADA', materials.lamina.id, ids.detalleLamina, 60, '7200.00', '432000.00'],
+    ]
+    for (const [id, numero, proveedorId, estado, materialId, detalleId, cantidad, precioUnitario, total] of extraOrders) {
+      const order = await ensure(tx, 'ordenCompra', id, { numero, proveedorId, fecha: new Date('2026-01-18T08:00:00Z'), estado, responsableId: admin.id, total, observaciones: 'Orden de demostracion' })
+      await ensure(tx, 'detalleOrdenCompra', detalleId, { ordenCompraId: order.id, materialId, cantidad, precioUnitario, subtotal: total })
+    }
 
     const receipt = await ensure(tx, 'recepcionCompra', ids.recepcion, { ordenCompraId: order1.id, claveIdempotencia: 'seed-recepcion-001', solicitudHash: 'seed-recepcion-hash-001'.padEnd(64, '0'), usuarioId: admin.id, ubicacionId: central.id, referencia: 'FAC-SEED-001', observaciones: 'Recepción parcial demostrativa', fecha: new Date('2026-01-12T10:00:00Z') })
     const receiptDetail = await ensure(tx, 'detalleRecepcion', ids.detalleRecepcion, { recepcionId: receipt.id, detalleOrdenCompraId: detailCemento1.id, cantidad: 60 })
@@ -120,6 +145,21 @@ const run = async () => {
     await ensure(tx, 'movimientoInventario', ids.ajusteBlock, { materialId: materials.block.id, tipo: 'AJUSTE', sentidoAjuste: 'INCREMENTO', cantidad: 5, fecha: new Date('2026-01-16T11:00:00Z'), usuarioId: admin.id, ubicacionDestinoId: central.id, documentoOrigen: 'AJU-SEED-001', observaciones: 'Ajuste positivo por conteo físico' })
 
     await ensure(tx, 'alertaInventario', ids.alertaGuantes, { materialId: materials.guantes.id, ubicacionId: central.id, tipo: 'PUNTO_REORDEN', estado: 'ACTIVA', descripcion: 'Stock de guantes en cero: requiere reposición', fecha: new Date('2026-01-16T12:00:00Z') })
+    const extraMovements = [
+      [ids.movimientoPiedra, materials.piedra.id, 'ENTRADA', 40, central.id, null, 'FAC-SEED-004'],
+      [ids.movimientoPvc, materials.pvc.id, 'ENTRADA', 25, sur.id, null, 'FAC-SEED-005'],
+      [ids.movimientoPintura, materials.pintura.id, 'ENTRADA', 25, central.id, null, 'FAC-SEED-006'],
+      [ids.movimientoCable, materials.cable.id, 'ENTRADA', 500, central.id, null, 'FAC-SEED-007'],
+      [ids.movimientoTornillos, materials.tornillos.id, 'ENTRADA', 40, central.id, null, 'FAC-SEED-008'],
+      [ids.movimientoLamina, materials.lamina.id, 'ENTRADA', 60, norte.id, null, 'FAC-SEED-009'],
+      [ids.movimientoAdhesivo, materials.adhesivo.id, 'ENTRADA', 8, central.id, null, 'FAC-SEED-010'],
+      [ids.movimientoVarilla, materials.varilla.id, 'ENTRADA', 80, central.id, null, 'FAC-SEED-011'],
+      [ids.movimientoArenaSalida, materials.arena.id, 'SALIDA', 12, null, central.id, 'VALE-SEED-002'],
+    ]
+    for (const [id, materialId, tipo, cantidad, ubicacionDestinoId, ubicacionOrigenId, documentoOrigen] of extraMovements) {
+      await ensure(tx, 'movimientoInventario', id, { materialId, tipo, cantidad, fecha: new Date('2026-01-19T10:00:00Z'), usuarioId: admin.id, ubicacionDestinoId, ubicacionOrigenId, documentoOrigen, observaciones: 'Movimiento de demostracion' })
+    }
+
     await ensure(tx, 'auditoria', ids.auditoria, { usuarioId: admin.id, accion: 'SEED_DEMO', entidad: 'Seed', entidadId: 'seed-v1', detalles: { version: 1, origen: 'scripts/seed.js' }, fecha: new Date('2026-01-16T12:00:00Z') })
   })
 
