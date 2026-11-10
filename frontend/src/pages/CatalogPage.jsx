@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Eye, Pencil, Plus, Search, Trash2 } from 'lucide-react'
 import { apiClient } from '../services/api'
 import { ConfirmDialog, DataTable, ErrorState, LoadingState, Modal, PageHeader, StatusBadge } from '../components/UI'
+import { useAuth } from '../context/useAuth'
 
 const configs = {
   materiales: {
@@ -46,6 +47,7 @@ function CatalogForm({ config, value, mode, onSubmit, onClose, saving, error }) 
 }
 
 export default function CatalogPage({ type }) {
+  const { user } = useAuth(); const canManage = user?.rol === 'ADMINISTRADOR'
   const config = configs[type]; const [rows, setRows] = useState(null); const [error, setError] = useState(''); const [query, setQuery] = useState(''); const [modal, setModal] = useState(null); const [saving, setSaving] = useState(false); const [notice, setNotice] = useState(''); const [deleteTarget, setDeleteTarget] = useState(null)
   const load = () => { setError(''); return apiClient.get(config.endpoint).then(setRows).catch((err) => setError(err.message)) }
   useEffect(() => {
@@ -56,9 +58,9 @@ export default function CatalogPage({ type }) {
   const filteredRows = useMemo(() => (rows || []).filter((row) => Object.values(row).some((value) => String(value ?? '').toLowerCase().includes(query.toLowerCase()))), [rows, query])
   const save = (form) => { setSaving(true); const request = modal.mode === 'edit' ? apiClient.put(`${config.endpoint}/${modal.row.id}`, form) : apiClient.post(config.endpoint, form); request.then(() => { setModal(null); setNotice(`${config.singular[0].toUpperCase() + config.singular.slice(1)} guardado correctamente`); load() }).catch((err) => setError(err.message)).finally(() => setSaving(false)) }
   const remove = () => { setSaving(true); apiClient.delete(`${config.endpoint}/${deleteTarget.id}`).then(() => { setDeleteTarget(null); setNotice('Registro eliminado correctamente'); load() }).catch((err) => setError(err.message)).finally(() => setSaving(false)) }
-  return <><PageHeader title={config.title} description={config.description} action={<button className="button primary" onClick={() => setModal({ mode: 'create', row: emptyForm(config.fields) })}><Plus size={17} /> Nuevo {config.singular}</button>} />
+  return <><PageHeader title={config.title} description={config.description} action={canManage && <button className="button primary" onClick={() => setModal({ mode: 'create', row: emptyForm(config.fields) })}><Plus size={17} /> Nuevo {config.singular}</button>} />
     {notice && <div className="success-message" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Cerrar mensaje">×</button></div>}
-    <div className="panel"><div className="panel-toolbar"><div className="search-box"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Buscar ${config.singular}...`} /></div><span>{rows ? `${filteredRows.length} de ${rows.length} registros` : 'Consultando API...'}</span></div>{error && !rows ? <ErrorState message={error} /> : rows ? <DataTable rows={filteredRows} columns={[...config.columns, { key: 'actions', label: 'Acciones', render: (row) => <div className="row-actions"><button className="table-action" onClick={() => setModal({ mode: 'view', row })} title="Ver detalles"><Eye size={16} /></button><button className="table-action" onClick={() => setModal({ mode: 'edit', row })} title="Editar"><Pencil size={16} /></button><button className="table-action danger" onClick={() => setDeleteTarget(row)} title="Eliminar"><Trash2 size={16} /></button></div> }]} empty="No hay registros que coincidan con la búsqueda" /> : <LoadingState />}</div>
+    <div className="panel"><div className="panel-toolbar"><div className="search-box"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Buscar ${config.singular}...`} /></div><span>{rows ? `${filteredRows.length} de ${rows.length} registros` : 'Consultando API...'}</span></div>{error && !rows ? <ErrorState message={error} /> : rows ? <DataTable rows={filteredRows} columns={[...config.columns, { key: 'actions', label: 'Acciones', render: (row) => <div className="row-actions"><button className="table-action" onClick={() => setModal({ mode: 'view', row })} title="Ver detalles"><Eye size={16} /></button>{canManage && <><button className="table-action" onClick={() => setModal({ mode: 'edit', row })} title="Editar"><Pencil size={16} /></button><button className="table-action danger" onClick={() => setDeleteTarget(row)} title="Eliminar"><Trash2 size={16} /></button></>}</div> }]} empty="No hay registros que coincidan con la búsqueda" /> : <LoadingState />}</div>
     {modal && <Modal wide title={`${modal.mode === 'create' ? 'Nuevo' : modal.mode === 'edit' ? 'Editar' : 'Detalle'} ${config.singular}`} onClose={() => !saving && setModal(null)}><CatalogForm config={config} value={modal.row} mode={modal.mode} onSubmit={save} onClose={() => setModal(null)} saving={saving} error={error && rows ? error : ''} /></Modal>}
     {deleteTarget && <ConfirmDialog title={`Eliminar ${config.singular}`} message={`¿Seguro que deseas eliminar “${deleteTarget.nombre || deleteTarget.codigo || deleteTarget.identificacion}”? Esta acción puede ser rechazada si tiene historial relacionado.`} onCancel={() => !saving && setDeleteTarget(null)} onConfirm={remove} loading={saving} />}
   </>

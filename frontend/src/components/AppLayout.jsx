@@ -13,7 +13,7 @@ export default function AppLayout() {
   const current = navigation.find((item) => item.path === location.pathname) || navigation.find((item) => item.path !== '/' && location.pathname.startsWith(item.path)) || navigation[0]
   const visibleNavigation = navigation.filter((item) => item.path !== '/usuarios' || user?.rol === 'ADMINISTRADOR')
   const handleSignOut = async () => { try { await signOut() } finally { navigate('/login', { replace: true }) } }
-  return <div className="app-shell">
+  return <div className={`app-shell role-${user?.rol || 'ANONIMO'} page-${location.pathname.slice(1).replaceAll('/', '-') || 'dashboard'}`}>
     {open && <button className="mobile-overlay" aria-label="Cerrar menú" onClick={() => setOpen(false)} />}
     <aside className={`sidebar ${open ? 'sidebar-open' : ''}`}>
       <div className="brand"><div className="brand-mark"><Boxes size={18} /></div><div><strong>ObraStock</strong><span>Control de inventario</span></div><button className="icon-button sidebar-close" onClick={() => setOpen(false)} aria-label="Cerrar menú"><X size={19} /></button></div>
