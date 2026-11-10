@@ -15,10 +15,12 @@ if (databaseName === 'gestion_inventario_construccion' && process.env.SEED_ALLOW
   throw new Error('El seed está bloqueado para la base de desarrollo; use una base aislada o confirme SEED_ALLOW_DEVELOPMENT=YES')
 }
 
-const password = process.env.SEED_ADMIN_PASSWORD
-if (!password || password.length < 12) {
-  throw new Error('SEED_ADMIN_PASSWORD es obligatorio y debe tener al menos 12 caracteres; nunca se usa una contraseña predeterminada')
+const adminPassword = process.env.SEED_ADMIN_PASSWORD
+const employeePassword = process.env.SEED_EMPLOYEE_PASSWORD
+if (!adminPassword || adminPassword.length < 12 || !employeePassword || employeePassword.length < 12) {
+  throw new Error('SEED_ADMIN_PASSWORD y SEED_EMPLOYEE_PASSWORD son obligatorios y deben tener al menos 12 caracteres; nunca se usan contraseñas predeterminadas')
 }
+if (adminPassword === employeePassword) throw new Error('Las contraseñas demo deben ser independientes')
 
 const adapter = new PrismaMariaDb({
   host: databaseUrl.hostname,
@@ -67,15 +69,23 @@ const ensure = async (tx, model, id, data) => {
 }
 
 const run = async () => {
-  const passwordHash = await argon2.hash(password, { type: argon2.argon2id })
+  const adminPasswordHash = await argon2.hash(adminPassword, { type: argon2.argon2id })
+  const employeePasswordHash = await argon2.hash(employeePassword, { type: argon2.argon2id })
 
   await prisma.$transaction(async (tx) => {
     const admin = await ensure(tx, 'usuario', ids.admin, {
       identificacion: 'SEED-ADMIN',
       nombre: 'Administrador de Demostración',
-      correo: 'admin.demo@obrastock.local',
+      correo: 'admin@inventario.test',
       rol: 'ADMINISTRADOR',
-      passwordHash,
+      passwordHash: adminPasswordHash,
+    })
+    await ensure(tx, 'usuario', 'seed-usuario-empleado', {
+      identificacion: 'DEMO-BODEGA',
+      nombre: 'Empleado de Demostración',
+      correo: 'empleado@obrastock.test',
+      rol: 'ENCARGADO_BODEGA',
+      passwordHash: employeePasswordHash,
     })
 
     const materials = {}
